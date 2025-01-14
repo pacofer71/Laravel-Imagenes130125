@@ -53,6 +53,9 @@ Listado de artículos
                     <form action="{{route('articles.destroy', $item)}}" method="POST">
                         @csrf
                         @method('DELETE')
+                        <a href="{{route('articles.edit', $item)}}" class="mr-2">
+                            <i class="fas fa-edit text-blue-500"></i>
+                        </a>
                         <button type="submit">
                             <i class="fas fa-trash text-red-500"></i>
                         </button>

@@ -13,7 +13,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articulos=Article::orderBy('id', 'desc')->paginate(5);
+        $articulos = Article::orderBy('id', 'desc')->paginate(5);
         return view('articles.index', compact('articulos'));
     }
 
@@ -30,8 +30,8 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $datos=$request->validate($this->rules());
-        $datos['imagen']=($request->imagen) ? $request->imagen->store('images/articles/') : 'images/articles/noimage.png';
+        $datos = $request->validate($this->rules());
+        $datos['imagen'] = ($request->imagen) ? $request->imagen->store('images/articles/') : 'images/articles/noimage.png';
         Article::create($datos);
         return redirect()->route('articles.index')->with('mensaje', "Artículo creado");
     }
@@ -49,7 +49,7 @@ class ArticleController extends Controller
      */
     public function edit(Article $article)
     {
-        //
+        return view('articles.edit', compact('article'));
     }
 
     /**
@@ -57,7 +57,14 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article)
     {
-        //
+        $datos = $request->validate($this->rules($article->id));
+        $datos['imagen'] = ($request->imagen) ? $request->imagen->store('images/articles/') : $article->imagen;
+        $imagenVieja = $article->imagen;
+        $article->update($datos);
+        if (basename($imagenVieja) != 'noimage.png' && $request->imagen) {
+            Storage::delete($imagenVieja);
+        }
+        return redirect()->route('articles.index')->with('mensaje', "Artículo Editado");
     }
 
     /**
@@ -66,19 +73,20 @@ class ArticleController extends Controller
     public function destroy(Article $article)
     {
         //si la imagen no es 'noimage.png' la borro y luego elimino el articulo
-        if(basename($article->imagen)!='noimage.png'){
+        if (basename($article->imagen) != 'noimage.png') {
             Storage::delete($article->imagen);
         }
         $article->delete();
         return redirect()->route('articles.index')->with('mensaje', "Artículo Borrado");
     }
 
-    private function rules(?int $id=null): array{
+    private function rules(?int $id = null): array
+    {
         return [
-            'nombre'=>['required', 'string', 'min:3', 'max:50', 'unique:articles,nombre,'.$id],
-            'descripcion'=>['required', 'string', 'min:10', 'max:150'],
-            'disponible'=>['required', 'in:SI,NO'],
-            'imagen'=>['image', 'max:2048']
+            'nombre' => ['required', 'string', 'min:3', 'max:50', 'unique:articles,nombre,' . $id],
+            'descripcion' => ['required', 'string', 'min:10', 'max:150'],
+            'disponible' => ['required', 'in:SI,NO'],
+            'imagen' => ['image', 'max:2048']
         ];
     }
 }
